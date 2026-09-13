@@ -5,9 +5,11 @@ import type { Project } from "../types/project.types";
 
 interface ProjectListProps {
     projects: Project[];
+    onDelete:(projectId : string)=> void;
+    onEdit: (projectId: string)=> void;
 }
 
-export default function ProjectList({projects}: ProjectListProps){
+export default function ProjectList({projects, onDelete, onEdit}: ProjectListProps){
     return(
         <Grid 
         container
@@ -15,7 +17,11 @@ export default function ProjectList({projects}: ProjectListProps){
         >
             {projects.map((project)=>(
                 <Grid key={project.name} size={{xs:12, sm:6, lg:4}}>
-                <ProjectCard project={project} />
+                <ProjectCard 
+                project={project}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                 />
                 
                 </Grid>
             ))}
