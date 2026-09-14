@@ -3,6 +3,7 @@ import type { Project } from "../types/project.types";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useState } from "react";
 import EditIcon from "@mui/icons-material/Edit";
+import { Link } from "react-router-dom";
 
 interface ProjectCardProps {
     project: Project;
@@ -14,9 +15,10 @@ interface ProjectCardProps {
 export default function ProjectCard({ project, onDelete, onEdit }: ProjectCardProps){
     const [deleteDialogOpen, setDeleteDialogOpen]= useState(false);
     return(
-        <Card>
+        <Card >
             <CardContent>
-                <Stack spacing={2}>
+                <Stack 
+                spacing={2}>
                     <Stack
                     direction={`row`}
                     sx={{
@@ -25,7 +27,10 @@ export default function ProjectCard({ project, onDelete, onEdit }: ProjectCardPr
                     }}
                     spacing={0.5}
                     >
-                        <Typography variant="h6">{project.name}</Typography>
+                        <Typography variant="h6"
+                        component={Link}
+                        to={`/projects/${project.id}`}
+                        >{project.name}</Typography>
                         <Chip 
                         label={project.status}
                         size="small"
