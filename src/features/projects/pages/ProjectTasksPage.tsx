@@ -1,7 +1,8 @@
 import CreateTaskForm from "@/features/tasks/components/CreateTaskForm";
 import EditTaskForm from "@/features/tasks/components/EditTaskForm";
 import TaskList from "@/features/tasks/components/TaskList";
-import { tasks as initialTasks} from "@/features/tasks/data/tasks";
+import { useTaskContext } from "@/features/tasks/context/TaskContext";
+// import { tasks as initialTasks} from "@/features/tasks/data/tasks";
 import type { CreateTaskFormData } from "@/features/tasks/schemas/taskSchemas";
 import type { Task } from "@/features/tasks/types/task.types";
 import { Button, Dialog, DialogContent, DialogTitle, Stack, Typography } from "@mui/material";
@@ -11,7 +12,7 @@ import { useParams } from "react-router-dom";
 export default function ProjectTasksPage(){
 
     const { projectId } = useParams();
-    const[tasks, setTasks] = useState<Task[]>(initialTasks)
+    const { tasks, createTask, updateTask, deleteTask } = useTaskContext();
     const[createDialogOpen, setCreateDialogOpen]= useState(false);
     const[editingTaskId, setEditingTaskId]= useState<string | null>(null);
 
@@ -37,21 +38,13 @@ export default function ProjectTasksPage(){
             dueDate:data.dueDate,
             createdAt: new Date().toISOString()
         }
-        setTasks((currentTasks)=>
-        [
-            ...currentTasks,
-            newTask
-        ])
+        createTask(newTask)
 
         setCreateDialogOpen(false)
     }
 
     const handleDeleteTask = (taskId : string) => {
-        setTasks((currentTask)=>(
-            currentTask.filter(
-                (task)=> task.id !== taskId
-            )
-        ))
+        deleteTask(taskId)
     }
 
     const handleEditTask = (taskId : string)=>{
@@ -59,18 +52,16 @@ export default function ProjectTasksPage(){
     }
 
     const handleUpdateTask = (data: CreateTaskFormData)=>{
-        setTasks((currentTasks)=>
-        currentTasks.map((task)=>
-        task.id === editingTaskId
-    ? {
-        ...task,
-        title: data.title,
-        description: data.description,
-        assignee: data.assignee,
-        priority:data.priority,
-        dueDate: data.dueDate
-    } : task
-    ))
+        if(!editingTask) return;
+        updateTask({
+            ...editingTask,
+            title:data.title,
+            description:data.description,
+            priority: data.priority,
+            assignee:data.assignee,
+            dueDate:data.dueDate
+        
+    })
     setEditingTaskId(null)
     }
 

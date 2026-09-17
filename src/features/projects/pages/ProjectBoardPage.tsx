@@ -1,15 +1,16 @@
 import TaskColumn from "@/features/tasks/components/TaskColumn";
-import { tasks as initialTasks } from "@/features/tasks/data/tasks";
+// import { tasks as initialTasks } from "@/features/tasks/data/tasks";
 import { Box, Stack, Typography } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { DndContext,DragOverlay, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import type { Task } from "@/features/tasks/types/task.types";
 import { useState } from "react";
 import TaskDragPreview from "@/features/tasks/components/TaskDragPreview";
+import { useTaskContext } from "@/features/tasks/context/TaskContext";
 
 export default function ProjectBoardPage(){
     const { projectId } = useParams();
-    const [ tasks , setTasks ]= useState(initialTasks);
+    const { tasks, moveTask } = useTaskContext();
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
     const projectTasks = tasks.filter(
@@ -40,13 +41,10 @@ export default function ProjectBoardPage(){
         const taskId = String(active.id);
         const newStatus = String(over.id) as Task["status"];
 
-        setTasks((currentTasks)=>
-        currentTasks.map((task)=>
-        task.id === taskId ? {
-            ...task,
-            status: newStatus
-        } : task,
-        ))
+        moveTask(
+            taskId,
+            newStatus
+        )
         setActiveTaskId(null)
     }
 
