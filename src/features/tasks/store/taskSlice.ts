@@ -5,10 +5,12 @@ import type { Task } from "../types/task.types";
 
 interface TaskState {
     items : Task[];
+    selectedTaskIds: string[];
 }
 
 const initialState : TaskState = {
     items: initialTasks,
+    selectedTaskIds: [],
 }
 
 const taskSlice = createSlice({
