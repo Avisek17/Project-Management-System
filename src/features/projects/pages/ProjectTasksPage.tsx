@@ -1,18 +1,25 @@
 import CreateTaskForm from "@/features/tasks/components/CreateTaskForm";
 import EditTaskForm from "@/features/tasks/components/EditTaskForm";
 import TaskList from "@/features/tasks/components/TaskList";
-import { useTaskContext } from "@/features/tasks/context/TaskContext";
+// import { useTaskContext } from "@/features/tasks/context/TaskContext";
 // import { tasks as initialTasks} from "@/features/tasks/data/tasks";
 import type { CreateTaskFormData } from "@/features/tasks/schemas/taskSchemas";
 import type { Task } from "@/features/tasks/types/task.types";
 import { Button, Dialog, DialogContent, DialogTitle, Stack, Typography } from "@mui/material";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import { createTask,deleteTask,updateTask } from "@/features/tasks/store/taskSlice";
+import { selectTasks } from "@/features/tasks/store/taskSelectors";
+
 
 export default function ProjectTasksPage(){
 
     const { projectId } = useParams();
-    const { tasks, createTask, updateTask, deleteTask } = useTaskContext();
+
+    const tasks = useAppSelector(selectTasks);
+    const dispatch = useAppDispatch();
+
     const[createDialogOpen, setCreateDialogOpen]= useState(false);
     const[editingTaskId, setEditingTaskId]= useState<string | null>(null);
 
@@ -38,13 +45,13 @@ export default function ProjectTasksPage(){
             dueDate:data.dueDate,
             createdAt: new Date().toISOString()
         }
-        createTask(newTask)
+        dispatch(createTask(newTask))
 
         setCreateDialogOpen(false)
     }
 
     const handleDeleteTask = (taskId : string) => {
-        deleteTask(taskId)
+        dispatch(deleteTask(taskId))
     }
 
     const handleEditTask = (taskId : string)=>{
@@ -53,7 +60,7 @@ export default function ProjectTasksPage(){
 
     const handleUpdateTask = (data: CreateTaskFormData)=>{
         if(!editingTask) return;
-        updateTask({
+        dispatch(updateTask({
             ...editingTask,
             title:data.title,
             description:data.description,
@@ -61,7 +68,7 @@ export default function ProjectTasksPage(){
             assignee:data.assignee,
             dueDate:data.dueDate
         
-    })
+    }))
     setEditingTaskId(null)
     }
 

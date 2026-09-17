@@ -4,7 +4,6 @@ import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import ViewKanbanOutlinedIcon from "@mui/icons-material/ViewKanbanOutlined";
 import TaskOutlinedIcon from "@mui/icons-material/TaskOutlined";
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
-import { TaskProvider } from "@/features/tasks/context/TaskContext";
 
 export default function ProjectLayout(){
     const { projectId } = useParams();
@@ -67,9 +66,7 @@ export default function ProjectLayout(){
             <Box 
             component={`main`}
             sx={{mt:4}}>
-                <TaskProvider>
                 <Outlet />
-                </TaskProvider>
             </Box>
         </Box>
     )

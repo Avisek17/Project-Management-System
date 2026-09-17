@@ -6,11 +6,18 @@ import { DndContext,DragOverlay, type DragEndEvent, type DragStartEvent } from "
 import type { Task } from "@/features/tasks/types/task.types";
 import { useState } from "react";
 import TaskDragPreview from "@/features/tasks/components/TaskDragPreview";
-import { useTaskContext } from "@/features/tasks/context/TaskContext";
+// import { useTaskContext } from "@/features/tasks/context/TaskContext";
+import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import { moveTask } from "@/features/tasks/store/taskSlice";
+import { selectTasks } from "@/features/tasks/store/taskSelectors";
+
 
 export default function ProjectBoardPage(){
     const { projectId } = useParams();
-    const { tasks, moveTask } = useTaskContext();
+
+    const tasks = useAppSelector(selectTasks);
+    const dispatch = useAppDispatch();
+
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
     const projectTasks = tasks.filter(
@@ -41,10 +48,11 @@ export default function ProjectBoardPage(){
         const taskId = String(active.id);
         const newStatus = String(over.id) as Task["status"];
 
-        moveTask(
+        dispatch(moveTask({
             taskId,
-            newStatus
-        )
+            status: newStatus,
+        }
+        ))
         setActiveTaskId(null)
     }
 
