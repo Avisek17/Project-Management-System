@@ -9,32 +9,30 @@ import TaskDragPreview from "@/features/tasks/components/TaskDragPreview";
 // import { useTaskContext } from "@/features/tasks/context/TaskContext";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { moveTask } from "@/features/tasks/store/taskSlice";
-import { selectTasks } from "@/features/tasks/store/taskSelectors";
+import { selectCompletedTasks, selectInProgressTasks, selectTasks, selectTodoTasks } from "@/features/tasks/store/taskSelectors";
 
 
 export default function ProjectBoardPage(){
-    const { projectId } = useParams();
+    const { projectId } = useParams<{ projectId: string}>();
 
+    if(!projectId){
+        return<Typography>Project not found.</Typography>
+    }
+    
     const tasks = useAppSelector(selectTasks);
     const dispatch = useAppDispatch();
 
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
-    const projectTasks = tasks.filter(
-        (task) => task.projectId === projectId,
-    )
+    // const projectTasks = tasks.filter(
+    //     (task) => task.projectId === projectId,
+    // )
 
-    const todoTasks = projectTasks.filter(
-        (task)=> task.status === "Todo"
-    )
+    const todoTasks = useAppSelector((state)=>selectTodoTasks(state, projectId));
 
-    const inProgressTasks = projectTasks.filter(
-        (task)=> task.status === "In Progress"
-    )
+    const inProgressTasks = useAppSelector((state)=>selectInProgressTasks(state,projectId));
 
-    const completedTasks = projectTasks.filter(
-        (task)=> task.status === "Completed"
-    )
+    const completedTasks = useAppSelector((state)=>selectCompletedTasks(state, projectId));
 
     const handleDragStart =(event: DragStartEvent)=>{
         setActiveTaskId(String(event.active.id))

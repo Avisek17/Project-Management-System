@@ -1,7 +1,13 @@
 import { Grid } from "@mui/material";
 import StatCard from "./StatCard";
 
-const stats = [
+import { useAppSelector } from "@/app/store/hooks";
+import { selectTaskCounts } from "@/features/tasks/store/taskSelectors";
+
+export default function DashboardStats(){
+    const taskCounts = useAppSelector(selectTaskCounts);
+
+    const stats = [
     {
         title: "Total projects",
         value: 12,
@@ -9,13 +15,13 @@ const stats = [
     },
     {
         title:"Active Tasks",
-        value: 10,
-        description:"J lekhe ni vayo"
+        value: taskCounts.inProgress,
+        description:`${taskCounts.inProgress} tasks currently in progress`
     },
     {
     title: "Completed Tasks",
-    value: 124,
-    description: "18 completed this week",
+    value: taskCounts.completed,
+    description: `${taskCounts.completed} completed tasks`,
   },
   {
     title: "Team Members",
@@ -23,8 +29,6 @@ const stats = [
     description: "2 joined this month",
   },
 ]
-
-export default function DashboardStats(){
     return(
         <Grid 
         container
