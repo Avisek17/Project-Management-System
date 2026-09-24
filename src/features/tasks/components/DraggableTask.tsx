@@ -3,6 +3,11 @@ import { Card, CardContent, Typography } from "@mui/material"
 
 import type { Task } from "../types/task.types"
 
+import { useAppDispatch, useAppSelector } from "@/app/store/hooks"
+import { selectSelectedTaskIds } from "../store/taskSelectors"
+import { toggleTaskSelection } from "../store/taskSlice"
+import Checkbox from "@mui/material/Checkbox"
+
 interface DraggableTaskProps {
     task : Task;
 }
@@ -16,6 +21,13 @@ export default function DraggableTask({task}: DraggableTaskProps){
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
         
     } : undefined;
+
+    const dispatch = useAppDispatch();
+
+    const selectedTaskIds = useAppSelector(selectSelectedTaskIds);
+
+    const isSelected = selectedTaskIds.includes(task.id);
+
     return(
         <Card
         ref={setNodeRef}
@@ -31,7 +43,18 @@ export default function DraggableTask({task}: DraggableTaskProps){
             }
         }}
         >
+               <Checkbox 
+            checked={isSelected}
+            onChange={()=>{
+                dispatch(toggleTaskSelection(task.id))
+            }}
+            onPointerDown={(event)=> {
+                event.stopPropagation();
+            }}
+            />
+
             <CardContent>
+             
                 <Typography variant="subtitle1">
                     {task.title}
                 </Typography>

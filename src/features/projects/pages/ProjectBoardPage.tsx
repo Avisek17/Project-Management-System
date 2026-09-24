@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { moveTask } from "@/features/tasks/store/taskSlice";
 import { selectCompletedTasks, selectInProgressTasks, selectTasks, selectTodoTasks } from "@/features/tasks/store/taskSelectors";
 
+import TaskBulkActions from "@/features/tasks/components/TaskBulkActions";
 
 export default function ProjectBoardPage(){
     const { projectId } = useParams<{ projectId: string}>();
@@ -61,6 +62,9 @@ export default function ProjectBoardPage(){
                 <Typography variant="body2" color="text.secondary">
                     Manage tasks using the Kanban board.
                 </Typography>
+                <TaskBulkActions projectId={projectId} />
+                
+                
             </Stack>
 
             <Stack 
@@ -70,6 +74,7 @@ export default function ProjectBoardPage(){
                 alignItems:"stretch"
             }}
             >
+                
                 <DndContext
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}

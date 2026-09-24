@@ -46,4 +46,21 @@ export const selectTaskById = ( state : RootState, taskId: string) =>
                 (task)=> task.status === "Completed"
             ).length
         })
+    );
+
+    export const selectSelectedTaskIds = ( state: RootState) => 
+        state.tasks.selectedTaskIds;
+
+    export const selectSelectedTasks = createSelector(
+        [selectTasks, selectSelectedTaskIds],
+        (tasks, selectSelectedTaskIds)=> 
+            tasks.filter((task)=>
+            selectSelectedTaskIds.includes(task.id),
     )
+    );
+
+    export const selectSelectedTaskCount = createSelector(
+        [selectSelectedTaskIds],
+        (selectedTaskIds)=> selectedTaskIds.length
+    );
+

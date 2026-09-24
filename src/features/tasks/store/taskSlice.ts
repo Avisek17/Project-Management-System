@@ -46,16 +46,63 @@ const taskSlice = createSlice({
             if(task){
                 task.status = action.payload.status;
             }
-        }
+        },
 
+        toggleTaskSelection: (
+            state,
+            action: PayloadAction<string>
+        )=>{
+            const taskId = action.payload;
+
+            const isSelected = state.selectedTaskIds.includes(taskId);
+
+            if(isSelected){
+                state.selectedTaskIds = state.selectedTaskIds.filter(
+                    (id) => id !== taskId,
+                );
+            } else{
+                state.selectedTaskIds.push(taskId);
+            }
+        },
+
+        clearTaskSelection: (state)=>{
+            state.selectedTaskIds = [];
+    },
+
+    selectAllTasks : (state, action: PayloadAction<string>) => {
+        const projectId = action.payload;
+
+        state.selectedTaskIds = state.items.filter(
+            (task)=> task.projectId === projectId
+        ).map((task)=> task.id)
+    },
+
+    bulkUpdateStatus:(
+        state,
+        action: PayloadAction<{
+            taskIds: string[];
+            status: Task["status"];
+        }>,
+    ) => {
+        state.items.forEach((task)=>{
+            if(action.payload.taskIds.includes(task.id)){
+                task.status = action.payload.status
+            }
+        });
     }
-})
+        }
+    })
+
 
 export const {
     createTask,
     updateTask,
     deleteTask,
-    moveTask
+    moveTask,
+    toggleTaskSelection,
+    clearTaskSelection,
+    selectAllTasks,
+    bulkUpdateStatus,
 } = taskSlice.actions;
 
 export default taskSlice.reducer;
