@@ -7,20 +7,22 @@ import type { Task } from "@/features/tasks/types/task.types";
 import { useState } from "react";
 import TaskDragPreview from "@/features/tasks/components/TaskDragPreview";
 // import { useTaskContext } from "@/features/tasks/context/TaskContext";
-import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import { useAppDispatch,  } from "@/app/store/hooks";
 import { moveTask } from "@/features/tasks/store/taskSlice";
-import { selectCompletedTasks, selectInProgressTasks, selectTasks, selectTodoTasks } from "@/features/tasks/store/taskSelectors";
+// import { selectCompletedTasks, selectInProgressTasks,selectTodoTasks } from "@/features/tasks/store/taskSelectors";
 
 import TaskBulkActions from "@/features/tasks/components/TaskBulkActions";
 
-export default function ProjectBoardPage(){
-    const { projectId } = useParams<{ projectId: string}>();
+import { useTasks } from "@/features/tasks/hooks/useTasks";
 
-    if(!projectId){
-        return<Typography>Project not found.</Typography>
-    }
+export default function ProjectBoardPage(){
     
-    const tasks = useAppSelector(selectTasks);
+    const { projectId } = useParams<{ projectId: string}>();
+    const {data: serverTasks = [], isLoading, isError } = useTasks(projectId);
+
+ 
+    
+    const tasks = serverTasks;
     const dispatch = useAppDispatch();
 
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
@@ -29,11 +31,30 @@ export default function ProjectBoardPage(){
     //     (task) => task.projectId === projectId,
     // )
 
-    const todoTasks = useAppSelector((state)=>selectTodoTasks(state, projectId));
+ const todoTasks = tasks.filter(
+  (task) => task.status === "Todo",
+);
 
-    const inProgressTasks = useAppSelector((state)=>selectInProgressTasks(state,projectId));
+const inProgressTasks = tasks.filter(
+  (task) => task.status === "In Progress",
+);
 
-    const completedTasks = useAppSelector((state)=>selectCompletedTasks(state, projectId));
+const completedTasks = tasks.filter(
+  (task) => task.status === "Completed",
+);
+
+       if(isLoading){
+        return <Typography>Loading tasks...</Typography>
+    }
+
+    if(isError){
+        return <Typography color="error">Failed to load tasks.</Typography>
+    }
+
+    if(!projectId){
+        return<Typography>Project not found.</Typography>
+    }
+
 
     const handleDragStart =(event: DragStartEvent)=>{
         setActiveTaskId(String(event.active.id))
@@ -54,6 +75,8 @@ export default function ProjectBoardPage(){
         ))
         setActiveTaskId(null)
     }
+
+    
 
     return (
         <Stack spacing={3}>
