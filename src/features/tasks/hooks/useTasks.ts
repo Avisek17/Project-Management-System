@@ -11,5 +11,7 @@ export function useTasks(projectId: string | undefined) {
         : taskQueryKeys.all,
         queryFn:()=> fetchTasks(projectId!),
         enabled: Boolean(projectId),
+        staleTime: 30_000,
+        gcTime: 5*60*1000,
     })
 }
