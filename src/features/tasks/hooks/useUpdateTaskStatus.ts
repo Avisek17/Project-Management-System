@@ -1,16 +1,66 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { updateTaskStatus } from "../api/taskApi";
 import type { Task } from "../types/task.types";
+import { taskQueryKeys } from "../api/taskQueryKeys";
 
-export function useUpdateTAskStatus(){
-    return useMutation({
-        mutationFn:({
-            taskId,
-            status,
-        }: {
-            taskId : string;
-            status: Task["status"];
-        }) => updateTaskStatus(taskId, status)
-    })
+export function useUpdateTAskStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      status,
+    }: {
+      taskId: string;
+      status: Task["status"];
+      projectId: string;
+    }) => updateTaskStatus(taskId, status),
+
+    onMutate: async ({ taskId, status, projectId }) => {
+      const queryKey = taskQueryKeys.byProject(projectId);
+
+      await queryClient.cancelQueries({
+        queryKey,
+      });
+
+      const previousTasks =
+        queryClient.getQueryData<Task[]>(queryKey);
+
+        console.log("CACHE BEFORE:", previousTasks);
+
+      queryClient.setQueryData<Task[]>(
+        queryKey,
+        (currentTasks) => {
+            console.log("CURRENT CACHE:", currentTasks);
+          if (!currentTasks) return currentTasks;
+
+          return currentTasks.map((task) =>
+            task.id === taskId
+              ? { ...task, status }
+              : task,
+          );
+        },
+      );
+
+      return { previousTasks, queryKey };
+    },
+
+    onError: (_error, _variables, context) => {
+      if (!context) return;
+
+      queryClient.setQueryData(
+        context.queryKey,
+        context.previousTasks,
+      );
+    },
+
+    onSettled: (_data, _error, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: taskQueryKeys.byProject(
+          variables.projectId,
+        ),
+      });
+    },
+  });
 }

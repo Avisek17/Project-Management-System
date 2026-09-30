@@ -7,23 +7,24 @@ import type { Task } from "@/features/tasks/types/task.types";
 import { useState } from "react";
 import TaskDragPreview from "@/features/tasks/components/TaskDragPreview";
 // import { useTaskContext } from "@/features/tasks/context/TaskContext";
-import { useAppDispatch,  } from "@/app/store/hooks";
-import { moveTask } from "@/features/tasks/store/taskSlice";
+// import { useAppDispatch,  } from "@/app/store/hooks";
+// import { moveTask } from "@/features/tasks/store/taskSlice";
 // import { selectCompletedTasks, selectInProgressTasks,selectTodoTasks } from "@/features/tasks/store/taskSelectors";
 
 import TaskBulkActions from "@/features/tasks/components/TaskBulkActions";
 
 import { useTasks } from "@/features/tasks/hooks/useTasks";
+import { useUpdateTAskStatus } from "@/features/tasks/hooks/useUpdateTaskStatus";
 
 export default function ProjectBoardPage(){
     
     const { projectId } = useParams<{ projectId: string}>();
     const {data: serverTasks = [], isLoading, isError } = useTasks(projectId);
 
- 
+    const updateTaskStatus = useUpdateTAskStatus();
     
     const tasks = serverTasks;
-    const dispatch = useAppDispatch();
+    // const dispatch = useAppDispatch();
 
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
@@ -63,16 +64,28 @@ const completedTasks = tasks.filter(
     const handleDragEnd = (event: DragEndEvent)=>{
         const { active, over } = event;
 
+        console.log("DRAG END:", {
+    activeId: active.id,
+    overId: over?.id,
+    projectId,
+  }); 
+
         if(!over) return;
 
         const taskId = String(active.id);
         const newStatus = String(over.id) as Task["status"];
 
-        dispatch(moveTask({
+ console.log("MUTATION:", {
+    taskId,
+    newStatus,
+    projectId,
+  });
+
+        updateTaskStatus.mutate({
             taskId,
             status: newStatus,
-        }
-        ))
+            projectId,
+        })
         setActiveTaskId(null)
     }
 
