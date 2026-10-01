@@ -4,7 +4,7 @@ import { updateTaskStatus } from "../api/taskApi";
 import type { Task } from "../types/task.types";
 import { taskQueryKeys } from "../api/taskQueryKeys";
 
-export function useUpdateTAskStatus() {
+export function useUpdateTaskStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -24,24 +24,15 @@ export function useUpdateTAskStatus() {
         queryKey,
       });
 
-      const previousTasks =
-        queryClient.getQueryData<Task[]>(queryKey);
+      const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
 
-        console.log("CACHE BEFORE:", previousTasks);
+      queryClient.setQueryData<Task[]>(queryKey, (currentTasks) => {
+        if (!currentTasks) return currentTasks;
 
-      queryClient.setQueryData<Task[]>(
-        queryKey,
-        (currentTasks) => {
-            console.log("CURRENT CACHE:", currentTasks);
-          if (!currentTasks) return currentTasks;
-
-          return currentTasks.map((task) =>
-            task.id === taskId
-              ? { ...task, status }
-              : task,
-          );
-        },
-      );
+        return currentTasks.map((task) =>
+          task.id === taskId ? { ...task, status } : task,
+        );
+      });
 
       return { previousTasks, queryKey };
     },
@@ -49,18 +40,28 @@ export function useUpdateTAskStatus() {
     onError: (_error, _variables, context) => {
       if (!context) return;
 
-      queryClient.setQueryData(
-        context.queryKey,
-        context.previousTasks,
+      queryClient.setQueryData(context.queryKey, context.previousTasks);
+    },
+
+    onSuccess: (updatedTask, variables) => {
+      queryClient.setQueryData<Task[]>(
+        taskQueryKeys.byProject(variables.projectId),
+        (current) =>
+          current?.map((task) =>
+            task.id === updatedTask.id ? updatedTask : task,
+          ) ?? [],
       );
     },
 
     onSettled: (_data, _error, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: taskQueryKeys.byProject(
-          variables.projectId,
-        ),
-      });
+      if (variables?.projectId) {
+        queryClient.invalidateQueries({
+          queryKey: taskQueryKeys.byProject(variables.projectId),
+        });
+      }
     },
   });
 }
+
+// Alias for backward compatibility
+export const useUpdateTAskStatus = useUpdateTaskStatus;

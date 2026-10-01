@@ -9,7 +9,7 @@ interface TaskState {
 }
 
 const initialState : TaskState = {
-    items: initialTasks,
+    items: initialTasks.map((t) => ({ ...t })),
     selectedTaskIds: [],
 }
 

@@ -9,7 +9,8 @@ export function useTasks(projectId: string | undefined) {
         queryKey: projectId 
         ? taskQueryKeys.byProject(projectId)
         : taskQueryKeys.all,
-        queryFn:()=> fetchTasks(projectId!),
+        queryFn: ({ signal }) =>
+        fetchTasks(projectId!, signal),
         enabled: Boolean(projectId),
         staleTime: 30_000,
         gcTime: 5*60*1000,
