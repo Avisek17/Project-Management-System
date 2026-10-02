@@ -6,6 +6,7 @@ let mockTasks: Task[] = initialTasks.map((task) => ({ ...task }));
 
 export async function fetchTasks(
   projectId: string,
+  searchTerm = "",
   signal?: AbortSignal,
 ): Promise<Task[]> {
   await new Promise<void>((resolve, reject) => {
@@ -14,6 +15,11 @@ export async function fetchTasks(
     signal?.addEventListener(
       "abort",
       () => {
+        console.log(
+      "FETCH ABORTED:",
+      projectId,
+      searchTerm,
+    );
         clearTimeout(timer);
         reject(new DOMException("Request aborted", "AbortError"));
       },
@@ -21,8 +27,17 @@ export async function fetchTasks(
     );
   });
 
+  const search = searchTerm.toLowerCase().trim();
   return mockTasks
     .filter((task) => task.projectId === projectId)
+    .filter((task)=>{
+        if(!search) return true;
+
+        return(
+            task.title.toLowerCase().includes(search) ||
+            task.description.toLowerCase().includes(search)
+        )
+    })
     .map((task) => ({ ...task }));
 }
 
@@ -46,4 +61,4 @@ export async function updateTaskStatus(
   mockTasks = mockTasks.map((task, i) => (i === index ? updatedTask : task));
 
   return { ...updatedTask };
-}
+}

@@ -15,17 +15,19 @@ import { useDebounce } from "@/shared/hooks/useDebounce";
 
 export default function ProjectBoardPage() {
   const { projectId } = useParams<{ projectId: string }>();
-  const { data: serverTasks = [], isLoading, isError } = useTasks(projectId);
+  
   const updateTaskStatus = useUpdateTaskStatus();
-
-  const tasks = serverTasks;
-  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+    const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm ] = useState("");
 
   const debouncedSearchTerm = useDebounce(
     searchTerm,
     300
   );
+  const { data: serverTasks = [], isLoading, isError } = useTasks(projectId, debouncedSearchTerm);
+    const tasks = serverTasks;
+ 
+
 
   const filteredTasks = tasks.filter((task)=>{
     const search = debouncedSearchTerm.toLowerCase();
