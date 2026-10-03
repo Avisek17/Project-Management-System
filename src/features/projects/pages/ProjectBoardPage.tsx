@@ -1,5 +1,5 @@
 import TaskColumn from "@/features/tasks/components/TaskColumn";
-import { Box, Stack, Typography, TextField } from "@mui/material";
+import { Box, Stack, Typography, TextField, Select, MenuItem, InputLabel, FormControl } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import type { Task } from "@/features/tasks/types/task.types";
@@ -11,6 +11,7 @@ import { useTasks } from "@/features/tasks/hooks/useTasks";
 import { useUpdateTaskStatus } from "@/features/tasks/hooks/useUpdateTaskStatus";
 
 import { useDebounce } from "@/shared/hooks/useDebounce";
+import type { TaskFilters } from "@/features/tasks/types/taskFilter.types";
 
 
 export default function ProjectBoardPage() {
@@ -18,13 +19,19 @@ export default function ProjectBoardPage() {
   
   const updateTaskStatus = useUpdateTaskStatus();
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm ] = useState("");
+    const [searchTerm, setSearchTerm ] = useState("");
+    const [filters, setFilters] = useState<TaskFilters>({
+        status:"All",
+        priority:"All",
+        assignee:"All",
+        dueDate:"All"
+    });
 
   const debouncedSearchTerm = useDebounce(
     searchTerm,
     300
   );
-  const { data: serverTasks = [], isLoading, isError } = useTasks(projectId, debouncedSearchTerm);
+  const { data: serverTasks = [], isLoading, isError } = useTasks(projectId, debouncedSearchTerm, filters);
     const tasks = serverTasks;
  
 
@@ -96,6 +103,85 @@ export default function ProjectBoardPage() {
         onChange={(event)=> setSearchTerm(event.target.value)}
         sx={{ mb: 2}}
         />
+        <Stack spacing={2}
+        sx={{
+            mb:2
+        }}
+        direction={{xs:"column", sm:"row"}}
+        >
+        <FormControl sx={{minWidth:160}}>
+            <InputLabel>Status</InputLabel>
+            <Select
+            value={filters.status}
+            label="Status"
+            onChange={(event)=>
+                setFilters((current)=> ({
+                    ...current,
+                    status: event.target.value as TaskFilters["status"],
+                }))
+            }
+            >
+                <MenuItem value="All">All</MenuItem>
+                <MenuItem value="Todo">Todo</MenuItem>
+                <MenuItem value="In Progress">In Progress</MenuItem>
+                <MenuItem value="Completed">Completed</MenuItem>
+            </Select>
+        </FormControl>
+        <FormControl sx={{minWidth:160}}>
+            <InputLabel>Priority</InputLabel>
+            <Select
+            value={filters.priority}
+            label="Priority"
+            onChange={(event)=>
+                setFilters((current)=>({
+                    ...current,
+                    priority:event.target.value as Task["priority"],
+                }))
+            }
+            >
+               <MenuItem value="All">All</MenuItem>
+                <MenuItem value="High">High</MenuItem>
+                <MenuItem value="Medium">Medium</MenuItem>
+                <MenuItem value="Low">Low</MenuItem> 
+            </Select>
+        </FormControl>
+        <FormControl sx={{minWidth:160}}>
+            <InputLabel>Assignee</InputLabel>
+            <Select
+            value={filters.assignee}
+            label="Assignee"
+            onChange={(event)=>
+                setFilters((current)=>({
+                    ...current,
+                    assignee:event.target.value,
+                }))
+            }
+            >
+                <MenuItem value="All">All</MenuItem>
+                <MenuItem value="Alex">Alex</MenuItem>
+                <MenuItem value="Sarah">Sarah</MenuItem>
+                <MenuItem value="John">John</MenuItem>
+            </Select>
+        </FormControl>
+        <FormControl sx={{ minWidth: 160 }}>
+  <InputLabel>Due date</InputLabel>
+
+  <Select
+    value={filters.dueDate}
+    label="Due date"
+    onChange={(event) =>
+      setFilters((current) => ({
+        ...current,
+        dueDate: event.target.value as TaskFilters["dueDate"],
+      }))
+    }
+  >
+    <MenuItem value="All">All dates</MenuItem>
+    <MenuItem value="Overdue">Overdue</MenuItem>
+    <MenuItem value="Upcoming">Upcoming</MenuItem>
+  </Select>
+</FormControl>
+        </Stack>
         <TaskBulkActions projectId={projectId} />
       </Stack>
 
