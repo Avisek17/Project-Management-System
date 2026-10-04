@@ -1,5 +1,5 @@
 import TaskColumn from "@/features/tasks/components/TaskColumn";
-import { Box, Stack, Typography, TextField, Select, MenuItem, InputLabel, FormControl } from "@mui/material";
+import { Box, Stack, Typography, TextField, Select, MenuItem, InputLabel, FormControl, Button } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import type { Task } from "@/features/tasks/types/task.types";
@@ -88,6 +88,16 @@ export default function ProjectBoardPage() {
     setActiveTaskId(null);
   };
 
+  const handleClearFilters = () => {
+    setFilters({
+        status:"All",
+        priority:"All",
+        assignee:"All",
+        dueDate:"All"
+    })
+    setSearchTerm("");
+  }
+
   return (
     <Stack spacing={3}>
       <Stack spacing={0.5}>
@@ -108,8 +118,9 @@ export default function ProjectBoardPage() {
             mb:2
         }}
         direction={{xs:"column", sm:"row"}}
+
         >
-        <FormControl sx={{minWidth:160}}>
+        <FormControl sx={{minWidth:120}}>
             <InputLabel>Status</InputLabel>
             <Select
             value={filters.status}
@@ -127,7 +138,7 @@ export default function ProjectBoardPage() {
                 <MenuItem value="Completed">Completed</MenuItem>
             </Select>
         </FormControl>
-        <FormControl sx={{minWidth:160}}>
+        <FormControl sx={{minWidth:120}}>
             <InputLabel>Priority</InputLabel>
             <Select
             value={filters.priority}
@@ -145,7 +156,7 @@ export default function ProjectBoardPage() {
                 <MenuItem value="Low">Low</MenuItem> 
             </Select>
         </FormControl>
-        <FormControl sx={{minWidth:160}}>
+        <FormControl sx={{minWidth:120}}>
             <InputLabel>Assignee</InputLabel>
             <Select
             value={filters.assignee}
@@ -163,7 +174,7 @@ export default function ProjectBoardPage() {
                 <MenuItem value="John">John</MenuItem>
             </Select>
         </FormControl>
-        <FormControl sx={{ minWidth: 160 }}>
+        <FormControl sx={{ minWidth: 120 }}>
   <InputLabel>Due date</InputLabel>
 
   <Select
@@ -181,6 +192,12 @@ export default function ProjectBoardPage() {
     <MenuItem value="Upcoming">Upcoming</MenuItem>
   </Select>
 </FormControl>
+<Button 
+variant="outlined"
+onClick={handleClearFilters}
+>
+    CLear filters
+</Button>
         </Stack>
         <TaskBulkActions projectId={projectId} />
       </Stack>
