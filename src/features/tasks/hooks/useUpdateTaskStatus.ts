@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateTaskStatus } from "../api/taskApi";
 import type { Task } from "../types/task.types";
 import { taskQueryKeys } from "../api/taskQueryKeys";
+import type { PaginatedTasks } from "../types/paginatedTasks.types";
 
 export function useUpdateTaskStatus() {
   const queryClient = useQueryClient();
@@ -18,50 +19,61 @@ export function useUpdateTaskStatus() {
     }) => updateTaskStatus(taskId, status),
 
     onMutate: async ({ taskId, status, projectId }) => {
-      const queryKey = taskQueryKeys.byProject(projectId);
+      const projectQueryKey = taskQueryKeys.project(projectId);
 
       await queryClient.cancelQueries({
-        queryKey,
+        queryKey: projectQueryKey,
       });
 
-      const previousTasks = queryClient.getQueryData<Task[]>(queryKey);
+      const previousQueries =
+        queryClient.getQueriesData<PaginatedTasks>({
+          queryKey: projectQueryKey,
+        });
 
-      queryClient.setQueryData<Task[]>(queryKey, (currentTasks) => {
-        if (!currentTasks) return currentTasks;
+queryClient.setQueriesData<PaginatedTasks>({
+  queryKey:projectQueryKey
+},
+  (currentData)=> {
+    if(!currentData) return currentData;
 
-        return currentTasks.map((task) =>
-          task.id === taskId ? { ...task, status } : task,
-        );
-      });
-
-      return { previousTasks, queryKey };
+    return{
+      ...currentData,
+      items: currentData.items.map((task)=>
+      task.id === taskId
+    ? { ...task, status}: task)
+    }
+  }
+  );
+      return { previousQueries };
     },
 
     onError: (_error, _variables, context) => {
       if (!context) return;
 
-      queryClient.setQueryData(context.queryKey, context.previousTasks);
+      for(const[queryKey, previousData] of context.previousQueries){
+        queryClient.setQueryData(queryKey, previousData)
+      }
     },
 
-    onSuccess: (updatedTask, variables) => {
-      queryClient.setQueryData<Task[]>(
-        taskQueryKeys.byProject(variables.projectId),
-        (current) =>
-          current?.map((task) =>
-            task.id === updatedTask.id ? updatedTask : task,
-          ) ?? [],
-      );
-    },
+    // onSuccess: (updatedTask, variables) => {
+    //   queryClient.setQueryData<Task[]>(
+    //     taskQueryKeys.byProject(variables.projectId),
+    //     (current) =>
+    //       current?.map((task) =>
+    //         task.id === updatedTask.id ? updatedTask : task,
+    //       ) ?? [],
+    //   );
+    // },
 
     onSettled: (_data, _error, variables) => {
-      if (variables?.projectId) {
+      if (!variables?.projectId) return;
+       
         queryClient.invalidateQueries({
           queryKey: taskQueryKeys.byProject(variables.projectId),
         });
-      }
     },
   });
 }
 
 // Alias for backward compatibility
-export const useUpdateTAskStatus = useUpdateTaskStatus;
+export const useUpdateTAskStatus = useUpdateTaskStatus;

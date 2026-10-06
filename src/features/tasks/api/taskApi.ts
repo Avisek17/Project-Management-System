@@ -2,6 +2,8 @@ import { tasks as initialTasks } from "../data/tasks";
 import type { Task } from "../types/task.types";
 
 import type { TaskFilters } from "../types/taskFilter.types";
+import type { PaginatedTasks } from "../types/paginatedTasks.types";
+
 // Clone initial tasks so they are not affected by Redux Toolkit's Object.freeze in dev mode
 let mockTasks: Task[] = initialTasks.map((task) => ({ ...task }));
 
@@ -9,8 +11,10 @@ export async function fetchTasks(
   projectId: string,
   searchTerm = "",
   filters?: TaskFilters,
+  page = 1,
+  limit = 10,
   signal?: AbortSignal,
-): Promise<Task[]> {
+): Promise<PaginatedTasks> {
   await new Promise<void>((resolve, reject) => {
     const timer = setTimeout(resolve, 300);
 
@@ -30,7 +34,8 @@ export async function fetchTasks(
   });
 
   const search = searchTerm.toLowerCase().trim();
-  return mockTasks
+
+  const filteredTasks = mockTasks
     .filter((task) => task.projectId === projectId)
     .filter((task)=>{
         if(!search) return true;
@@ -76,7 +81,22 @@ export async function fetchTasks(
         }
         return dueDate >= today;
     })
-    .map((task) => ({ ...task }));
+
+const total = filteredTasks.length;
+
+const startIndex = (page - 1) * limit;
+
+const items = filteredTasks
+  .slice(startIndex, startIndex + limit)
+  .map((task) => ({ ...task }));
+
+return {
+  items,
+  total,
+  page,
+  limit,
+  totalPages: Math.ceil(total / limit),
+};
 }
 
 export async function updateTaskStatus(

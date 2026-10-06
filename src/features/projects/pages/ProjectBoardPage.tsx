@@ -3,7 +3,7 @@ import { Box, Stack, Typography, TextField, Select, MenuItem, InputLabel, FormCo
 import { useParams } from "react-router-dom";
 import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import type { Task } from "@/features/tasks/types/task.types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TaskDragPreview from "@/features/tasks/components/TaskDragPreview";
 import TaskBulkActions from "@/features/tasks/components/TaskBulkActions";
 
@@ -20,21 +20,26 @@ export default function ProjectBoardPage() {
   const updateTaskStatus = useUpdateTaskStatus();
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm ] = useState("");
+    const [ page, setPage ] = useState(1);
     const [filters, setFilters] = useState<TaskFilters>({
         status:"All",
         priority:"All",
         assignee:"All",
         dueDate:"All"
     });
-
-  const debouncedSearchTerm = useDebounce(
+    const debouncedSearchTerm = useDebounce(
     searchTerm,
     300
   );
-  const { data: serverTasks = [], isLoading, isError } = useTasks(projectId, debouncedSearchTerm, filters);
-    const tasks = serverTasks;
+    const { data: serverTasks, isLoading , isError } = useTasks(projectId, debouncedSearchTerm, filters,page);
+    const totalPages = serverTasks?.totalPages ?? 1 ;
+  
+  
+    const tasks = serverTasks?.items ?? [];
  
-
+  useEffect(()=>{
+ setPage(1);
+  }, [debouncedSearchTerm, filters])
 
   const filteredTasks = tasks.filter((task)=>{
     const search = debouncedSearchTerm.toLowerCase();
@@ -125,12 +130,13 @@ export default function ProjectBoardPage() {
             <Select
             value={filters.status}
             label="Status"
-            onChange={(event)=>
+            onChange={(event)=>{
                 setFilters((current)=> ({
                     ...current,
-                    status: event.target.value as TaskFilters["status"],
+                    status: event.target.value as TaskFilters["status"] | "All",
                 }))
-            }
+              setPage(1);  
+            }}
             >
                 <MenuItem value="All">All</MenuItem>
                 <MenuItem value="Todo">Todo</MenuItem>
@@ -244,6 +250,32 @@ onClick={handleClearFilters}
               : null}
           </DragOverlay>
         </DndContext>
+      </Stack>
+      <Stack
+      direction={`row`}
+      spacing={2}
+      sx={{
+        justifyContent:"center",
+        mt:3,
+      }}
+      > 
+      <Button
+      variant="outlined"
+      disabled={page === 1}
+      onClick={()=> setPage((current)=> current - 1)}
+      >
+        Previous
+      </Button>
+      <Typography>
+        Page {page} of { totalPages }
+      </Typography>
+        <Button
+        variant="outlined"
+        disabled={page === totalPages }
+        onClick={()=> setPage((current)=> current + 1)}
+        >
+            Next
+        </Button>
       </Stack>
     </Stack>
   );
