@@ -12,11 +12,14 @@ import { useUpdateTaskStatus } from "@/features/tasks/hooks/useUpdateTaskStatus"
 
 import { useDebounce } from "@/shared/hooks/useDebounce";
 import type { TaskFilters } from "@/features/tasks/types/taskFilter.types";
+import { useTaskHistory } from "@/features/tasks/hooks/useTaskHistory";
 
 
 export default function ProjectBoardPage() {
   const { projectId } = useParams<{ projectId: string }>();
   
+  const { history, recordChange, undo, redo } = useTaskHistory();
+
   const updateTaskStatus = useUpdateTaskStatus();
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm ] = useState("");
@@ -38,8 +41,8 @@ export default function ProjectBoardPage() {
     const tasks = serverTasks?.items ?? [];
  
   useEffect(()=>{
- setPage(1);
-  }, [debouncedSearchTerm, filters])
+    setPage(1);
+    }, [debouncedSearchTerm, filters])
 
   const filteredTasks = tasks.filter((task)=>{
     const search = debouncedSearchTerm.toLowerCase();
@@ -87,7 +90,17 @@ export default function ProjectBoardPage() {
         taskId,
         status: newStatus,
         projectId,
-      });
+      },
+    {
+      onSuccess: () => {
+        recordChange({
+          taskId,
+          projectId,
+          previousStatus: currentTask.status,
+          nextStatus:newStatus,
+        })
+      }
+    });
     }
 
     setActiveTaskId(null);
@@ -101,6 +114,34 @@ export default function ProjectBoardPage() {
         dueDate:"All"
     })
     setSearchTerm("");
+  }
+
+  const handleUndo = () => {
+    const currentChange = history.present;
+
+    if(!currentChange){
+      return;
+    }
+    updateTaskStatus.mutate({
+      taskId: currentChange.taskId,
+      status: currentChange.previousStatus,
+      projectId: currentChange.projectId,
+    })
+    undo();
+  }
+
+  const handleRedo = () => {
+    if(history.future.length === 0){
+      return;
+    }
+    const nextChange = history.future[0];
+
+    updateTaskStatus.mutate({
+      taskId: nextChange?.taskId,
+      status: nextChange?.nextStatus,
+      projectId: nextChange?.projectId,
+    })
+    redo();
   }
 
   return (
@@ -275,6 +316,22 @@ onClick={handleClearFilters}
         onClick={()=> setPage((current)=> current + 1)}
         >
             Next
+        </Button>
+      </Stack>
+      <Stack>
+        <Button
+        variant="outlined"
+        onClick={handleUndo}
+        disabled={!history.present}
+        >
+          Undo
+        </Button>
+        <Button
+        variant="outlined"
+        onClick={handleRedo}
+        disabled={history.future.length === 0}
+        >
+          Redo
         </Button>
       </Stack>
     </Stack>
