@@ -3,7 +3,7 @@ import { Box, Stack, Typography, TextField, Select, MenuItem, InputLabel, FormCo
 import { useParams } from "react-router-dom";
 import { DndContext, DragOverlay, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import type { Task } from "@/features/tasks/types/task.types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TaskDragPreview from "@/features/tasks/components/TaskDragPreview";
 import TaskBulkActions from "@/features/tasks/components/TaskBulkActions";
 
@@ -37,7 +37,7 @@ export default function ProjectBoardPage() {
     const { data: serverTasks, isLoading , isError } = useTasks(projectId, debouncedSearchTerm, filters,page);
     const totalPages = serverTasks?.totalPages ?? 1 ;
   
-  
+  const isHistoryAction = useRef(false);
     const tasks = serverTasks?.items ?? [];
  
   useEffect(()=>{
@@ -93,6 +93,10 @@ export default function ProjectBoardPage() {
       },
     {
       onSuccess: () => {
+        if(isHistoryAction.current){
+          isHistoryAction.current = false;
+          return;
+        }
         recordChange({
           taskId,
           projectId,
@@ -122,6 +126,8 @@ export default function ProjectBoardPage() {
     if(!currentChange){
       return;
     }
+    isHistoryAction.current = true;
+
     updateTaskStatus.mutate({
       taskId: currentChange.taskId,
       status: currentChange.previousStatus,
@@ -135,11 +141,15 @@ export default function ProjectBoardPage() {
       return;
     }
     const nextChange = history.future[0];
+    if(!nextChange){
+      return;
+    }
+    isHistoryAction.current = true;
 
     updateTaskStatus.mutate({
-      taskId: nextChange?.taskId,
-      status: nextChange?.nextStatus,
-      projectId: nextChange?.projectId,
+      taskId: nextChange.taskId,
+      status: nextChange.nextStatus,
+      projectId: nextChange.projectId,
     })
     redo();
   }
@@ -318,22 +328,32 @@ onClick={handleClearFilters}
             Next
         </Button>
       </Stack>
-      <Stack>
-        <Button
-        variant="outlined"
-        onClick={handleUndo}
-        disabled={!history.present}
-        >
-          Undo
-        </Button>
-        <Button
-        variant="outlined"
-        onClick={handleRedo}
-        disabled={history.future.length === 0}
-        >
-          Redo
-        </Button>
-      </Stack>
+      <Stack
+  direction="row"
+  spacing={1}
+  sx={{
+    justifyContent:"flex-end", 
+    mb: 2 }}
+>
+  <Button
+    variant="outlined"
+    onClick={handleUndo}
+    disabled={!history.present || updateTaskStatus.isPending}
+  >
+    Undo
+  </Button>
+
+  <Button
+    variant="outlined"
+    onClick={handleRedo}
+    disabled={
+      history.future.length === 0 ||
+      updateTaskStatus.isPending
+    }
+  >
+    Redo
+  </Button>
+</Stack>
     </Stack>
   );
 }

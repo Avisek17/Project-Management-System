@@ -7,7 +7,7 @@ import type { PaginatedTasks } from "../types/paginatedTasks.types";
 
 export function useUpdateTaskStatus() {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
     mutationFn: ({
       taskId,
@@ -55,15 +55,15 @@ queryClient.setQueriesData<PaginatedTasks>({
       }
     },
 
-    // onSuccess: (updatedTask, variables) => {
-    //   queryClient.setQueryData<Task[]>(
-    //     taskQueryKeys.byProject(variables.projectId),
-    //     (current) =>
-    //       current?.map((task) =>
-    //         task.id === updatedTask.id ? updatedTask : task,
-    //       ) ?? [],
-    //   );
-    // },
+    onSuccess: (updatedTask, variables) => {
+      queryClient.setQueryData<Task[]>(
+        taskQueryKeys.byProject(variables.projectId),
+        (current) =>
+          current?.map((task) =>
+            task.id === updatedTask.id ? updatedTask : task,
+          ) ?? [],
+      );
+    },
 
     onSettled: (_data, _error, variables) => {
       if (!variables?.projectId) return;
