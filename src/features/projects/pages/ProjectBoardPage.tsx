@@ -14,10 +14,12 @@ import { useDebounce } from "@/shared/hooks/useDebounce";
 import type { TaskFilters } from "@/features/tasks/types/taskFilter.types";
 import { useTaskHistory } from "@/features/tasks/hooks/useTaskHistory";
 
+import { useTaskSocket } from "@/features/tasks/hooks/useTaskSocket";
+
 
 export default function ProjectBoardPage() {
   const { projectId } = useParams<{ projectId: string }>();
-  
+  useTaskSocket(projectId);
   const { history, recordChange, undo, redo } = useTaskHistory();
 
   const updateTaskStatus = useUpdateTaskStatus();

@@ -4,6 +4,7 @@ import { updateTaskStatus } from "../api/taskApi";
 import type { Task } from "../types/task.types";
 import { taskQueryKeys } from "../api/taskQueryKeys";
 import type { PaginatedTasks } from "../types/paginatedTasks.types";
+import { socket } from "@/shared/api/socket";
 
 export function useUpdateTaskStatus() {
   const queryClient = useQueryClient();
@@ -63,15 +64,19 @@ queryClient.setQueriesData<PaginatedTasks>({
             task.id === updatedTask.id ? updatedTask : task,
           ) ?? [],
       );
-    },
+       socket.emit("task:move", {
+    taskId: updatedTask.id,
+    projectId: variables.projectId,
+    status: updatedTask.status,
+  });
+},
+ onSettled: (_data, _error, variables) => {
+  if (!variables?.projectId) return;
 
-    onSettled: (_data, _error, variables) => {
-      if (!variables?.projectId) return;
-       
-        queryClient.invalidateQueries({
-          queryKey: taskQueryKeys.byProject(variables.projectId),
-        });
-    },
+  queryClient.invalidateQueries({
+    queryKey: taskQueryKeys.byProject(variables.projectId),
+  });
+},
   });
 }
 

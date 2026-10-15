@@ -7,6 +7,7 @@ import ProjectOverviewPage from '@/features/projects/pages/ProjectOverviewPage';
 import ProjectPage from '@/features/projects/pages/ProjectPage';
 import ProjectTasksPage from '@/features/projects/pages/ProjectTasksPage';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { SocketConnectionTest } from '@/shared/components/SocketConnectionTest';
 
 import AppLayout from '@/app/layouts/AppLayouts';
 
@@ -25,6 +26,10 @@ export const router = createBrowserRouter([
             {
                 path:"/dashboard",
                 element: <DashboardPage />
+            },
+            {
+                path:"/test",
+                element:<SocketConnectionTest />
             },
             {
                 path:"/projects",
