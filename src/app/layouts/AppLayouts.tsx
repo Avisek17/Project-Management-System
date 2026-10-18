@@ -10,10 +10,12 @@ import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
 import { toggleSidebar, closeSidebar } from "@/app/store/uiSlice";
 import MenuIcon from '@mui/icons-material/Menu'
+import { useSocketConnection } from "@/shared/hooks/useSocketConnection";
 
 const drawerWidth = 240;
 
 export default function AppLayout(){
+    useSocketConnection();
     const dispatch = useAppDispatch();
 
     const sidebarOpen = useAppSelector(
